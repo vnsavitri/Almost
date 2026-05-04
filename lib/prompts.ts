@@ -1,4 +1,4 @@
-export const MODEL = 'claude-sonnet-4-6'
+export const MODEL = 'anthropic/claude-sonnet-4-5'
 
 export const BANNED_WORDS = [
   'navigating', 'tapestry', 'embark', 'journey', 'landscape',

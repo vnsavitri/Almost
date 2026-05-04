@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Anthropic from '@anthropic-ai/sdk'
+import OpenAI from 'openai'
 import { MODEL, EXTRACT_BRANCHES_PROMPT } from '@/lib/prompts'
 import type { Branch } from '@/lib/types'
 
@@ -45,13 +45,13 @@ function extractJson(text: string): Branch[] {
     } catch { /* fallthrough */ }
   }
 
-  throw new Error('Could not parse branches from Claude response')
+  throw new Error('Could not parse branches from response')
 }
 
 export async function POST(req: NextRequest) {
   try {
     if (process.env.ALMOST_MOCK === '1') {
-      await new Promise(r => setTimeout(r, 1200)) // simulate latency
+      await new Promise(r => setTimeout(r, 1200))
       return NextResponse.json({ branches: MOCK_BRANCHES })
     }
 
@@ -61,22 +61,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: 'No resume provided' }, { status: 400 })
     }
 
-    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+    const client = new OpenAI({
+      baseURL: 'https://openrouter.ai/api/v1',
+      apiKey: process.env.OPENROUTER_API_KEY,
+    })
 
-    const message = await client.messages.create({
+    const response = await client.chat.completions.create({
       model: MODEL,
       max_tokens: 1024,
-      system: EXTRACT_BRANCHES_PROMPT,
       messages: [
+        { role: 'system', content: EXTRACT_BRANCHES_PROMPT },
         {
           role: 'user',
           content: [
             {
-              type: 'document',
-              source: {
-                type: 'base64',
-                media_type: 'application/pdf',
-                data: resumeBase64,
+              type: 'image_url',
+              image_url: {
+                url: `data:application/pdf;base64,${resumeBase64}`,
               },
             },
             {
@@ -88,7 +89,7 @@ export async function POST(req: NextRequest) {
       ],
     })
 
-    const text = message.content[0].type === 'text' ? message.content[0].text : ''
+    const text = response.choices[0]?.message?.content ?? ''
     const branches = extractJson(text)
 
     return NextResponse.json({ branches })

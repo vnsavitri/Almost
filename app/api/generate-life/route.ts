@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Anthropic from '@anthropic-ai/sdk'
+import OpenAI from 'openai'
 import { MODEL, GENERATE_LIFE_LINKEDIN, GENERATE_LIFE_WIKI, GENERATE_LIFE_PLAQUE, GENERATE_LIFE_TAROT } from '@/lib/prompts'
 import { buildTemplate } from '@/lib/templates'
 import { ZELDA_DEMO_PROFILE } from '@/lib/demo/zelda-profile'
@@ -32,7 +32,7 @@ function extractJson(text: string): unknown {
     try { return JSON.parse(match[0]) } catch { /* fallthrough */ }
   }
 
-  throw new Error('Could not parse life data from Claude response')
+  throw new Error('Could not parse life data from response')
 }
 
 export async function POST(req: NextRequest) {
@@ -61,7 +61,6 @@ export async function POST(req: NextRequest) {
       const isPro = await kv.get(K.pro(userId)) === '1'
 
       if (!isPro) {
-        // Block regeneration of same (branch, template)
         const alreadyGenerated = await kv.get(K.gen(userId, branchId, templateId))
         if (alreadyGenerated) {
           return NextResponse.json(
@@ -70,7 +69,6 @@ export async function POST(req: NextRequest) {
           )
         }
 
-        // Block second branch
         const usedBranch = await kv.get(K.branch(userId))
         if (usedBranch && usedBranch !== branchId) {
           return NextResponse.json(
@@ -82,11 +80,10 @@ export async function POST(req: NextRequest) {
     }
     // ────────────────────────────────────────────────────────────────────────
 
-    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-
-    const userContent: Anthropic.MessageParam['content'] = isDemoMode
-      ? [{ type: 'text', text: `Here is the LinkedIn profile:\n\n${ZELDA_DEMO_PROFILE.raw_linkedin_text}` }]
-      : [{ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: resumeBase64 } }]
+    const client = new OpenAI({
+      baseURL: 'https://openrouter.ai/api/v1',
+      apiKey: process.env.OPENROUTER_API_KEY,
+    })
 
     const demoZeldaBranch = isDemoMode
       ? ZELDA_DEMO_PROFILE.branches.find(b => b.id === branchId)
@@ -99,20 +96,36 @@ export async function POST(req: NextRequest) {
       branchContext = `\n\nFork point at ${branchFromClient.year}: ${branchFromClient.whatHappened}\nWhat could have happened instead: ${branchFromClient.whatCouldHaveHappened}`
     }
 
-    const message = await client.messages.create({
+    const userContent: OpenAI.ChatCompletionContentPart[] = isDemoMode
+      ? [{ type: 'text', text: `Here is the LinkedIn profile:\n\n${ZELDA_DEMO_PROFILE.raw_linkedin_text}` }]
+      : [
+          {
+            type: 'image_url',
+            image_url: {
+              url: `data:application/pdf;base64,${resumeBase64}`,
+            },
+          },
+        ]
+
+    const response = await client.chat.completions.create({
       model: MODEL,
       max_tokens: MAX_TOKENS[templateId],
-      system: PROMPTS[templateId],
-      messages: [{
-        role: 'user',
-        content: [
-          ...(Array.isArray(userContent) ? userContent : [userContent]),
-          { type: 'text', text: `Generate the ${templateId} alternate life for this person.${branchContext}\n\nReturn ONLY the JSON object.` },
-        ],
-      }],
+      messages: [
+        { role: 'system', content: PROMPTS[templateId] },
+        {
+          role: 'user',
+          content: [
+            ...userContent,
+            {
+              type: 'text',
+              text: `Generate the ${templateId} alternate life for this person.${branchContext}\n\nReturn ONLY the JSON object.`,
+            },
+          ],
+        },
+      ],
     })
 
-    const text = message.content[0].type === 'text' ? message.content[0].text : ''
+    const text = response.choices[0]?.message?.content ?? ''
     const lifeData = extractJson(text)
     const html = buildTemplate(templateId, lifeData)
 
@@ -120,7 +133,7 @@ export async function POST(req: NextRequest) {
     if (!isDemoMode && userId && kvAvailable()) {
       await Promise.all([
         kv.set(K.gen(userId, branchId, templateId), '1'),
-        kv.setnx(K.branch(userId), branchId), // only sets if not already set
+        kv.setnx(K.branch(userId), branchId),
       ])
     }
     // ────────────────────────────────────────────────────────────────────────
