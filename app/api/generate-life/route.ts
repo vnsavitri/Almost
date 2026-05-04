@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const pdfParse = require('pdf-parse')
 import { MODEL, GENERATE_LIFE_LINKEDIN, GENERATE_LIFE_WIKI, GENERATE_LIFE_PLAQUE, GENERATE_LIFE_TAROT } from '@/lib/prompts'
 import { buildTemplate } from '@/lib/templates'
 import { ZELDA_DEMO_PROFILE } from '@/lib/demo/zelda-profile'
 import { kv, kvAvailable, K } from '@/lib/kv'
 import type { TemplateId } from '@/lib/types'
 
+export const runtime = 'nodejs'
 export const maxDuration = 60
 
 const PROMPTS: Record<TemplateId, string> = {
@@ -85,6 +88,19 @@ export async function POST(req: NextRequest) {
       apiKey: process.env.OPENROUTER_API_KEY,
     })
 
+    // Extract text from PDF (or use demo text)
+    let resumeText: string
+    if (isDemoMode) {
+      resumeText = ZELDA_DEMO_PROFILE.raw_linkedin_text
+    } else {
+      const pdfBuffer = Buffer.from(resumeBase64, 'base64')
+      const pdfData = await pdfParse(pdfBuffer)
+      resumeText = pdfData.text?.trim() ?? ''
+      if (!resumeText) {
+        return NextResponse.json({ ok: false, error: 'Could not read text from your PDF. Try a text-based PDF rather than a scanned image.' }, { status: 400 })
+      }
+    }
+
     const demoZeldaBranch = isDemoMode
       ? ZELDA_DEMO_PROFILE.branches.find(b => b.id === branchId)
       : null
@@ -96,17 +112,6 @@ export async function POST(req: NextRequest) {
       branchContext = `\n\nFork point at ${branchFromClient.year}: ${branchFromClient.whatHappened}\nWhat could have happened instead: ${branchFromClient.whatCouldHaveHappened}`
     }
 
-    const userContent: OpenAI.ChatCompletionContentPart[] = isDemoMode
-      ? [{ type: 'text', text: `Here is the LinkedIn profile:\n\n${ZELDA_DEMO_PROFILE.raw_linkedin_text}` }]
-      : [
-          {
-            type: 'image_url',
-            image_url: {
-              url: `data:application/pdf;base64,${resumeBase64}`,
-            },
-          },
-        ]
-
     const response = await client.chat.completions.create({
       model: MODEL,
       max_tokens: MAX_TOKENS[templateId],
@@ -114,13 +119,7 @@ export async function POST(req: NextRequest) {
         { role: 'system', content: PROMPTS[templateId] },
         {
           role: 'user',
-          content: [
-            ...userContent,
-            {
-              type: 'text',
-              text: `Generate the ${templateId} alternate life for this person.${branchContext}\n\nReturn ONLY the JSON object.`,
-            },
-          ],
+          content: `Here is the resume/LinkedIn profile:\n\n${resumeText}\n\nGenerate the ${templateId} alternate life for this person.${branchContext}\n\nReturn ONLY the JSON object.`,
         },
       ],
     })

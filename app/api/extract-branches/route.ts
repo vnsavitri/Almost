@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const pdfParse = require('pdf-parse')
 import { MODEL, EXTRACT_BRANCHES_PROMPT } from '@/lib/prompts'
 import type { Branch } from '@/lib/types'
 
+export const runtime = 'nodejs'
 export const maxDuration = 60
 
 const MOCK_BRANCHES: Branch[] = [
@@ -30,13 +33,11 @@ const MOCK_BRANCHES: Branch[] = [
 ]
 
 function extractJson(text: string): Branch[] {
-  // Try direct parse first
   try {
     const parsed = JSON.parse(text)
     if (Array.isArray(parsed.branches)) return parsed.branches as Branch[]
   } catch { /* fallthrough */ }
 
-  // Regex fallback — extract first JSON object in the response
   const match = text.match(/\{[\s\S]*\}/)
   if (match) {
     try {
@@ -61,6 +62,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: 'No resume provided' }, { status: 400 })
     }
 
+    const pdfBuffer = Buffer.from(resumeBase64, 'base64')
+    const pdfData = await pdfParse(pdfBuffer)
+    const resumeText = pdfData.text?.trim()
+
+    if (!resumeText) {
+      return NextResponse.json({ ok: false, error: 'Could not read text from your PDF. Try a text-based PDF rather than a scanned image.' }, { status: 400 })
+    }
+
     const client = new OpenAI({
       baseURL: 'https://openrouter.ai/api/v1',
       apiKey: process.env.OPENROUTER_API_KEY,
@@ -73,18 +82,7 @@ export async function POST(req: NextRequest) {
         { role: 'system', content: EXTRACT_BRANCHES_PROMPT },
         {
           role: 'user',
-          content: [
-            {
-              type: 'image_url',
-              image_url: {
-                url: `data:application/pdf;base64,${resumeBase64}`,
-              },
-            },
-            {
-              type: 'text',
-              text: 'Find 3 to 5 fork points in this person\'s career timeline and return them as JSON.',
-            },
-          ],
+          content: `Here is the resume/LinkedIn profile:\n\n${resumeText}\n\nFind 3 to 5 fork points in this person's career timeline and return them as JSON.`,
         },
       ],
     })
