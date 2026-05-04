@@ -53,8 +53,17 @@ export default function LoadingPage() {
       headers: { 'Content-Type': 'application/json', 'x-user-id': getUserId() },
       body: JSON.stringify({ resumeBase64: resume, branchId: branch.id, branch, templateId: tid, isDemoMode: isDemo }),
     })
-      .then(res => res.json() as Promise<{ html?: string; ok?: boolean; error?: string }>)
-      .then(data => {
+      .then(async res => {
+        let data: { html?: string; ok?: boolean; error?: string }
+        try {
+          data = await res.json()
+        } catch {
+          throw new Error(
+            res.ok
+              ? 'Unexpected response from server — try again.'
+              : `Server error (${res.status}) — try again in a moment.`
+          )
+        }
         if (data.ok === false || !data.html) throw new Error(data.error ?? 'Could not generate your alternate life.')
         saveGeneration(branch.id, tid, data.html)
         router.push('/result')

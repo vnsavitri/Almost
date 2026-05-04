@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const pdfParse = require('pdf-parse')
 import { MODEL, EXTRACT_BRANCHES_PROMPT } from '@/lib/prompts'
 import type { Branch } from '@/lib/types'
 
@@ -62,6 +60,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: 'No resume provided' }, { status: 400 })
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const pdfParse = require('pdf-parse')
     const pdfBuffer = Buffer.from(resumeBase64, 'base64')
     const pdfData = await pdfParse(pdfBuffer)
     const resumeText = pdfData.text?.trim()

@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const pdfParse = require('pdf-parse')
 import { MODEL, GENERATE_LIFE_LINKEDIN, GENERATE_LIFE_WIKI, GENERATE_LIFE_PLAQUE, GENERATE_LIFE_TAROT } from '@/lib/prompts'
 import { buildTemplate } from '@/lib/templates'
 import { ZELDA_DEMO_PROFILE } from '@/lib/demo/zelda-profile'
@@ -93,6 +91,8 @@ export async function POST(req: NextRequest) {
     if (isDemoMode) {
       resumeText = ZELDA_DEMO_PROFILE.raw_linkedin_text
     } else {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const pdfParse = require('pdf-parse')
       const pdfBuffer = Buffer.from(resumeBase64, 'base64')
       const pdfData = await pdfParse(pdfBuffer)
       resumeText = pdfData.text?.trim() ?? ''

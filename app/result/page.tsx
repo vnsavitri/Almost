@@ -83,7 +83,16 @@ export default function ResultPage() {
         body: JSON.stringify({ resumeBase64: resume, branchId: branch.id, branch, templateId: tid, isDemoMode: isDemo }),
       })
       if (res.status === 402) { setShowPaywall(true); return }
-      const data = await res.json() as { html?: string; ok?: boolean; error?: string }
+      let data: { html?: string; ok?: boolean; error?: string }
+      try {
+        data = await res.json()
+      } catch {
+        throw new Error(
+          res.ok
+            ? 'Unexpected response from server — try again.'
+            : `Server error (${res.status}) — try again in a moment.`
+        )
+      }
       if (data.html) { saveGeneration(branch.id, tid, data.html); setHtml(data.html) }
     } finally {
       setRegenerating(false)

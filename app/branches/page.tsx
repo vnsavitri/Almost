@@ -76,7 +76,16 @@ export default function BranchesPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ resumeBase64 }),
     })
-    const data = await res.json() as { branches?: Branch[]; ok?: boolean; error?: string }
+    let data: { branches?: Branch[]; ok?: boolean; error?: string }
+    try {
+      data = await res.json()
+    } catch {
+      throw new Error(
+        res.ok
+          ? 'Unexpected response from server — try again.'
+          : `Server error (${res.status}) — try again in a moment.`
+      )
+    }
     if (data.ok === false || !data.branches) {
       throw new Error(data.error ?? 'Could not find fork points in your profile.')
     }
