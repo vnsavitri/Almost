@@ -6,8 +6,13 @@ const API_KEY = process.env.NEXT_PUBLIC_REVENUECAT_API_KEY ?? ''
 
 /**
  * Configure the RC SDK singleton (safe to call multiple times — skips if already configured).
+ * Returns null if the API key is missing (e.g. env var not set on the server).
  */
-export function configurePurchases(appUserId: string): Purchases {
+export function configurePurchases(appUserId: string): Purchases | null {
+  if (!API_KEY) {
+    console.warn('[RC] NEXT_PUBLIC_REVENUECAT_API_KEY is not set — paywall unavailable')
+    return null
+  }
   if (!Purchases.isConfigured()) {
     return Purchases.configure({ apiKey: API_KEY, appUserId })
   }

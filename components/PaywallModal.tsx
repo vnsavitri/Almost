@@ -73,8 +73,9 @@ export default function PaywallModal({ reason, onSuccess, onDismiss }: Props) {
         // User dismissed RC's paywall — just restore our modal.
         setPurchasing(false)
       } else {
+        const msg = err instanceof Error ? err.message : String(err)
         console.error('[RC] presentPaywall error:', err)
-        setError('Something went wrong with the payment. Please try again.')
+        setError(`Payment error: ${msg}`)
         setPurchasing(false)
       }
     }
