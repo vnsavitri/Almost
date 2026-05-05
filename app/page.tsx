@@ -71,14 +71,15 @@ export default function Home() {
           ]}
         />
 
-        {/* Numbered CTA */}
+        {/* CTA */}
         <Link
           href="/upload"
-          className="group mt-8 inline-flex items-center gap-3 font-eyebrow text-eyebrow text-ink hover:text-coral transition-colors duration-200"
+          className="group mt-10 inline-flex items-center gap-4 font-mono uppercase tracking-[0.22em] text-ink hover:text-coral transition-colors duration-200"
+          style={{ fontSize: 'clamp(1.1rem, 2.2vw, 1.6rem)' }}
         >
-          <span className="text-coral/60 group-hover:text-coral transition-colors">( 01 )</span>
+          <span className="text-coral/60 group-hover:text-coral transition-colors duration-200">( 01 )</span>
           Begin
-          <span className="group-hover:translate-x-1 transition-transform duration-200">→</span>
+          <span className="group-hover:translate-x-1.5 transition-transform duration-200">→</span>
         </Link>
       </div>
 

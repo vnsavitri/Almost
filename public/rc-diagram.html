@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RevenueCat — Almost Architecture</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #ebebd3;
+    color: #083d77;
+    font-family: 'Inter', system-ui, sans-serif;
+    min-height: 100vh;
+    padding: 40px 32px 60px;
+  }
+
+  header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 36px;
+    border-bottom: 2px solid #083d77;
+    padding-bottom: 16px;
+  }
+
+  header h1 {
+    font-size: 11px;
+    font-family: monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #083d77;
+    opacity: 0.5;
+  }
+
+  header .wordmark {
+    font-size: 22px;
+    font-weight: 300;
+    font-style: italic;
+    letter-spacing: -0.02em;
+    color: #083d77;
+  }
+
+  header .badge {
+    margin-left: auto;
+    font-size: 10px;
+    font-family: monospace;
+    background: #083d77;
+    color: #f4d35e;
+    padding: 3px 8px;
+  }
+
+  /* ── Phase labels ─────────────────────────────────────── */
+  .phases {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 36px;
+  }
+
+  .phase {
+    border: 2px solid #083d77;
+    padding: 14px 16px;
+    position: relative;
+  }
+
+  .phase-num {
+    font-size: 9px;
+    font-family: monospace;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    opacity: 0.4;
+    margin-bottom: 6px;
+  }
+
+  .phase-title {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .phase-sub {
+    font-size: 10px;
+    opacity: 0.55;
+    margin-top: 4px;
+    line-height: 1.5;
+  }
+
+  .phase-bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  /* ── Main diagram area ───────────────────────────────── */
+  .diagram-wrap {
+    background: #fff;
+    border: 2px solid #083d77;
+    padding: 32px 24px;
+    overflow-x: auto;
+  }
+
+  .mermaid {
+    min-width: 640px;
+  }
+
+  /* ── Actor legend ────────────────────────────────────── */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 28px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-family: monospace;
+  }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 0;
+    flex-shrink: 0;
+  }
+
+  /* ── Key–value table ─────────────────────────────────── */
+  .kv-section {
+    margin-top: 36px;
+    border: 2px solid #083d77;
+  }
+
+  .kv-header {
+    background: #083d77;
+    color: #f4d35e;
+    font-size: 9px;
+    font-family: monospace;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 8px 16px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+    font-family: monospace;
+  }
+
+  td {
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(8,61,119,0.12);
+    vertical-align: top;
+  }
+
+  td:first-child {
+    color: #da4167;
+    white-space: nowrap;
+    width: 40%;
+  }
+
+  td:last-child {
+    color: #083d77;
+    opacity: 0.65;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="wordmark">Almost</span>
+  <h1>RevenueCat Integration</h1>
+  <span class="badge">_rc-diagram</span>
+</header>
+
+<!-- Phase summary cards -->
+<div class="phases">
+  <div class="phase">
+    <div class="phase-bar" style="background:#083d77"></div>
+    <div class="phase-num">( 01 ) page load</div>
+    <div class="phase-title">SDK Init</div>
+    <div class="phase-sub">RC configured with user UUID. Entitlement silently synced → localStorage.</div>
+  </div>
+  <div class="phase">
+    <div class="phase-bar" style="background:#da4167"></div>
+    <div class="phase-num">( 02 ) gate check</div>
+    <div class="phase-title">isPro()</div>
+    <div class="phase-sub">localStorage read. If false → PaywallModal. Fast, no network call.</div>
+  </div>
+  <div class="phase">
+    <div class="phase-bar" style="background:#f78764"></div>
+    <div class="phase-num">( 03 ) purchase</div>
+    <div class="phase-title">presentPaywall</div>
+    <div class="phase-sub">RC full-screen overlay. User selects plan → RC Cloud processes payment.</div>
+  </div>
+  <div class="phase">
+    <div class="phase-bar" style="background:#f4d35e"></div>
+    <div class="phase-num">( 04 ) server cap</div>
+    <div class="phase-title">Vercel KV</div>
+    <div class="phase-sub">API route checks KV. Pro users bypass the one-generation cap.</div>
+  </div>
+</div>
+
+<!-- Sequence diagram -->
+<div class="diagram-wrap">
+  <div class="mermaid">
+sequenceDiagram
+    autonumber
+    participant B as Browser
+    participant RC as RC SDK
+    participant RCC as RevenueCat Cloud
+    participant API as Almost API
+    participant KV as Vercel KV
+
+    rect rgb(235, 235, 211)
+    Note over B,KV: PHASE 01 - PAGE LOAD
+    B->>RC: configurePurchases(userId)
+    RC->>RCC: fetch CustomerInfo
+    RCC-->>RC: entitlements.active
+    B->>B: setPro(true) if entitled
+    end
+
+    rect rgb(235, 235, 211)
+    Note over B,KV: PHASE 02 - GATE CHECK (no network)
+    B->>B: user hits Regenerate or New Branch
+    B->>B: isPro() reads localStorage
+    alt not pro
+        B->>B: PaywallModal opens
+    else already pro
+        B->>API: POST /api/generate-life
+    end
+    end
+
+    rect rgb(235, 235, 211)
+    Note over B,KV: PHASE 03 - PURCHASE
+    B->>RC: rc.presentPaywall
+    RC->>B: full-screen overlay rendered
+    B->>RCC: user selects plan and pays
+    RCC-->>RC: PaywallPurchaseResult
+    RC-->>B: entitlements.active confirmed
+    B->>B: setPro(true) to localStorage
+    B->>API: POST /api/unlock-pro
+    API->>KV: SET almost:pro:{userId} = 1
+    KV-->>API: OK
+    B->>B: onSuccess() continues the action
+    end
+
+    rect rgb(235, 235, 211)
+    Note over B,KV: PHASE 04 - SERVER-SIDE CAP
+    B->>API: POST /api/generate-life
+    API->>KV: GET almost:pro:{userId}
+    alt Pro user
+        KV-->>API: 1
+        API->>API: skip cap and generate
+        API-->>B: 200 with html
+    else Free user
+        KV-->>API: null
+        API->>KV: GET almost:gen:{userId}:{branchId}:{tplId}
+        alt already generated
+            API-->>B: 402 upgrade required
+        else first time
+            API->>API: generate and record in KV
+            API-->>B: 200 with html
+        end
+    end
+    end
+  </div>
+</div>
+
+<!-- Legend -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#083d77"></div>Browser / localStorage</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#da4167"></div>RC SDK (client, @revenuecat/purchases-js)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#f78764"></div>RevenueCat Cloud (payment processing)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#f4d35e; border:1px solid #083d77"></div>Almost API (Next.js Edge, Vercel)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#ebebd3; border:1px solid #083d77"></div>Vercel KV (server-side cap)</div>
+</div>
+
+<!-- KV key table -->
+<div class="kv-section">
+  <div class="kv-header">_vercel-kv key schema</div>
+  <table>
+    <tr>
+      <td>almost:pro:{userId}</td>
+      <td>"1" — user has purchased Pro. Set by /api/unlock-pro after RC confirms entitlement.</td>
+    </tr>
+    <tr>
+      <td>almost:gen:{userId}:{branchId}:{templateId}</td>
+      <td>"1" — free-tier generation already consumed for this (branch, template) combo.</td>
+    </tr>
+    <tr>
+      <td>almost:branch:{userId}</td>
+      <td>First branchId used by this free-tier user. Prevents branch-switching without Pro.</td>
+    </tr>
+  </table>
+</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    themeVariables: {
+      primaryColor: '#ebebd3',
+      primaryTextColor: '#083d77',
+      primaryBorderColor: '#083d77',
+      lineColor: '#083d77',
+      secondaryColor: '#f4d35e',
+      tertiaryColor: '#da4167',
+      noteBkgColor: '#f78764',
+      noteTextColor: '#083d77',
+      activationBkgColor: '#da4167',
+      activationBorderColor: '#083d77',
+      sequenceNumberColor: '#ebebd3',
+    },
+    sequence: {
+      actorMargin: 60,
+      messageMargin: 30,
+      mirrorActors: false,
+      useMaxWidth: true,
+      wrap: true,
+      wrapPadding: 10,
+    }
+  })
+</script>
+
+</body>
+</html>

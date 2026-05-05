@@ -183,7 +183,7 @@ export default function AboutPage() {
               </div>
               {/* Body */}
               <div className="px-3 py-3 flex-1 bg-cream">
-                <p className="font-inter text-[11px] leading-relaxed text-ink/65">{text}</p>
+                <p className="font-inter text-[13px] leading-relaxed text-ink/65">{text}</p>
               </div>
             </div>
           ))}
@@ -191,23 +191,32 @@ export default function AboutPage() {
       </div>
 
       {/* ── FULL-BLEED DARK QUOTE BLOCK ───────────────────────────────── */}
-      <div className="bg-ink px-6 md:px-14 py-14 md:py-20">
-        <div className="max-w-2xl">
-          {/* Fork graphic */}
-          <div className="relative w-12 h-10 mb-10" aria-hidden>
-            <div className="absolute left-1/2 top-0 w-px h-5 bg-cream/20 -translate-x-1/2" />
-            <div className="absolute left-0 top-5 right-1/2 h-px bg-coral/60" />
-            <div className="absolute left-1/2 top-5 right-0 h-px bg-glow/60" />
-            <div className="absolute left-1/2 top-5 w-2 h-2 bg-gold rounded-full -translate-x-1/2 -translate-y-1/2" />
-          </div>
-
-          <p className="font-display text-display-lg font-extralight italic text-cream leading-snug">
-            &ldquo;The unlived life is not a mistake.<br />
-            It&rsquo;s the other book on the shelf —<br />
-            same author, different ending.&rdquo;
-          </p>
-          <div className="w-10 h-0.5 bg-gold mt-8" />
+      <div className="bg-ink px-6 md:px-14 py-14 md:py-24">
+        {/* Fork graphic */}
+        <div className="relative w-12 h-10 mb-12" aria-hidden>
+          <div className="absolute left-1/2 top-0 w-px h-5 bg-cream/20 -translate-x-1/2" />
+          <div className="absolute left-0 top-5 right-1/2 h-px bg-coral/60" />
+          <div className="absolute left-1/2 top-5 right-0 h-px bg-glow/60" />
+          <div className="absolute left-1/2 top-5 w-2 h-2 bg-gold rounded-full -translate-x-1/2 -translate-y-1/2" />
         </div>
+
+        {/* Intro — dimmed, flows naturally at full width */}
+        <p className="font-display text-display font-extralight italic text-cream/55 leading-snug max-w-3xl">
+          &ldquo;The unlived life is not a mistake. It&rsquo;s the other book on the shelf.&rdquo;
+        </p>
+
+        {/* Separator */}
+        <div className="w-10 h-px bg-coral/40 my-8" />
+
+        {/* Punchline — big title callout */}
+        <p
+          className="font-display font-light italic text-cream leading-tight"
+          style={{ fontSize: 'clamp(2.4rem, 5vw, 5rem)', letterSpacing: '-0.025em' }}
+        >
+          Same author,<br className="md:hidden" /> different ending.
+        </p>
+
+        <div className="w-10 h-0.5 bg-gold mt-10" />
       </div>
 
       {/* ── PREMISE + PRIVACY ─────────────────────────────────────────── */}

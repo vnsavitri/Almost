@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { requestPurchase } from '@/lib/paywall'
+import { getRC, checkIsPro, isUserCancelled, ENTITLEMENT_ID } from '@/lib/revenuecat'
+import { setPro, syncProToServer } from '@/lib/paywall'
 import { getUserId } from '@/lib/user-id'
 
 interface Props {
@@ -24,17 +25,58 @@ const COPY = {
 export default function PaywallModal({ reason, onSuccess, onDismiss }: Props) {
   const [purchasing, setPurchasing] = useState(false)
   const [done, setDone] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const copy = COPY[reason]
 
   async function handlePurchase() {
     setPurchasing(true)
-    const ok = await requestPurchase(getUserId())
-    if (ok) {
-      setDone(true)
-      setTimeout(() => onSuccess(), 600)
-    } else {
+    setError(null)
+
+    const rc = getRC()
+
+    if (!rc) {
+      // RC not configured — shouldn't normally happen, but fail gracefully.
+      setError('Payment system unavailable. Please refresh and try again.')
       setPurchasing(false)
+      return
+    }
+
+    try {
+      // RC renders its full paywall as a full-screen overlay (htmlTarget: null).
+      const result = await rc.presentPaywall({})
+
+      // Purchase was made — check if the entitlement is now active.
+      const entitled = !!result.customerInfo.entitlements.active[ENTITLEMENT_ID]
+
+      if (entitled) {
+        setPro(true)
+        syncProToServer(getUserId()) // fire-and-forget
+        setDone(true)
+        setTimeout(() => onSuccess(), 600)
+      } else {
+        // Edge case: purchase completed but entitlement not yet active.
+        // Try a fresh fetch from RC before giving up.
+        const nowPro = await checkIsPro()
+        if (nowPro) {
+          setPro(true)
+          syncProToServer(getUserId())
+          setDone(true)
+          setTimeout(() => onSuccess(), 600)
+        } else {
+          setError('Purchase recorded but entitlement not yet active — please wait a moment and try again.')
+          setPurchasing(false)
+        }
+      }
+    } catch (err) {
+      if (isUserCancelled(err)) {
+        // User dismissed RC's paywall — just restore our modal.
+        setPurchasing(false)
+      } else {
+        console.error('[RC] presentPaywall error:', err)
+        setError('Something went wrong with the payment. Please try again.')
+        setPurchasing(false)
+      }
     }
   }
 
@@ -51,9 +93,9 @@ export default function PaywallModal({ reason, onSuccess, onDismiss }: Props) {
 
         <div className="flex flex-col gap-3">
           <p className="font-mono text-[9px] tracking-[0.25em] uppercase text-coral">
-            Almost Pro — $9
+            Almost Pro
           </p>
-          <h2 className="font-fraunces text-3xl font-light text-ink leading-tight">
+          <h2 className="font-display text-3xl font-light text-ink leading-tight">
             {copy.heading}
           </h2>
           <p className="font-inter text-sm text-ink/50 leading-relaxed">
@@ -63,7 +105,7 @@ export default function PaywallModal({ reason, onSuccess, onDismiss }: Props) {
 
         <div className="flex flex-col gap-2">
           <p className="font-mono text-[9px] tracking-[0.15em] uppercase text-ink/30">
-            one-time unlock · no subscription
+            billed via RevenueCat · cancel any time
           </p>
           <div className="flex flex-col gap-2 font-inter text-[11px] text-ink/40">
             <span>✓ unlimited regenerations</span>
@@ -71,6 +113,12 @@ export default function PaywallModal({ reason, onSuccess, onDismiss }: Props) {
             <span>✓ all 4 formats, always free</span>
           </div>
         </div>
+
+        {error && (
+          <p className="font-inter text-[11px] text-coral leading-relaxed">
+            {error}
+          </p>
+        )}
 
         <div className="flex items-center justify-between">
           <button
@@ -91,10 +139,7 @@ export default function PaywallModal({ reason, onSuccess, onDismiss }: Props) {
                   : 'text-ink hover:text-coral',
             ].join(' ')}
           >
-            {done ? 'unlocked.' : purchasing ? 'unlocking…' : 'unlock for $9'}
-            {!purchasing && !done && (
-              <span className="group-hover:translate-x-0.5 transition-transform">→</span>
-            )}
+            {done ? 'unlocked.' : purchasing ? 'opening…' : 'see plans →'}
           </button>
         </div>
 

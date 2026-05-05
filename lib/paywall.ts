@@ -8,27 +8,28 @@ export function isPro(): boolean {
   }
 }
 
-export async function requestPurchase(userId: string): Promise<boolean> {
-  // Phase 6a stub — simulates a successful purchase.
-  // Phase 6b: swap the setTimeout body for the RevenueCat web SDK flow.
-  // NEXT_PUBLIC_REVENUECAT_API_KEY is available for 6b.
-  return new Promise(resolve => {
-    setTimeout(async () => {
-      try { localStorage.setItem(PRO_KEY, '1') } catch { /* noop */ }
+export function setPro(value: boolean): void {
+  try {
+    if (value) {
+      localStorage.setItem(PRO_KEY, '1')
+    } else {
+      localStorage.removeItem(PRO_KEY)
+    }
+  } catch { /* noop */ }
+}
 
-      // Persist server-side so the API route can verify
-      if (userId) {
-        try {
-          await fetch('/api/unlock-pro', {
-            method: 'POST',
-            headers: { 'x-user-id': userId },
-          })
-        } catch { /* noop — fails open, localStorage is the fallback signal */ }
-      }
-
-      resolve(true)
-    }, 1200)
-  })
+/**
+ * Persist the Pro unlock server-side so the API can verify via Vercel KV.
+ * Fire-and-forget — the localStorage flag is the source of truth for the client.
+ */
+export async function syncProToServer(userId: string): Promise<void> {
+  if (!userId) return
+  try {
+    await fetch('/api/unlock-pro', {
+      method: 'POST',
+      headers: { 'x-user-id': userId },
+    })
+  } catch { /* fails open — localStorage is the fallback */ }
 }
 
 export function clearPro(): void {

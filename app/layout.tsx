@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Fraunces, Inter } from 'next/font/google'
 import './globals.css'
+import RevenueCatProvider from '@/components/RevenueCatProvider'
 
 const fraunces = Fraunces({
   subsets: ['latin'],
@@ -29,6 +30,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${fraunces.variable} ${inter.variable}`}>
       <body className="bg-cream text-ink font-inter antialiased">
+        <RevenueCatProvider />
         {children}
       </body>
     </html>
