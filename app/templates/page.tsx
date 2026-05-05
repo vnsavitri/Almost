@@ -16,20 +16,77 @@ const TEMPLATE_IDS: TemplateId[] = [
   'tarot-card',
 ]
 
-/* ── CSS-drawn mini-preview thumbnails ── */
+/* ── Card colour system ──────────────────────────────────────────────────── */
+
+type CardConfig = {
+  headerBg:   string
+  headerText: string
+  bodyBg:     string
+  shadowCol:  string
+  tag:        string
+  tagline:    string
+}
+
+const CARD_CONFIG: Record<TemplateId, CardConfig> = {
+  'linkedin-ghost': {
+    headerBg:   '#0A66C2',
+    headerText: '#ffffff',
+    bodyBg:     '#ffffff',
+    shadowCol:  '#083d77',
+    tag:        'linkedin',
+    tagline:    'uncanny-valley profile',
+  },
+  'wiki-stub': {
+    headerBg:   '#f78764',
+    headerText: '#083d77',
+    bodyBg:     '#ffffff',
+    shadowCol:  '#083d77',
+    tag:        'wikipedia',
+    tagline:    'barely notable',
+  },
+  'museum-plaque': {
+    headerBg:   '#f4d35e',
+    headerText: '#083d77',
+    bodyBg:     '#ebebd3',
+    shadowCol:  '#083d77',
+    tag:        'gallery',
+    tagline:    'gallery wall card',
+  },
+  'tarot-card': {
+    headerBg:   '#da4167',
+    headerText: '#ebebd3',
+    bodyBg:     '#083d77',
+    shadowCol:  '#da4167',
+    tag:        'tarot',
+    tagline:    'fortune foretold',
+  },
+}
+
+/* ── CSS-drawn preview thumbnails ──────────────────────────────────────── */
 
 function LinkedInPreview() {
   return (
-    <div style={{ background: '#fff', overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ height: '38%', background: 'linear-gradient(135deg, #0A66C2 0%, #1E88D4 100%)', position: 'relative', flexShrink: 0 }}>
-        <div style={{ position: 'absolute', bottom: -14, left: 12, width: 28, height: 28, borderRadius: '50%', background: '#C8DBF0', border: '2.5px solid #fff' }} />
+    <div style={{ background: '#fff', height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      {/* Header band */}
+      <div style={{ height: '40%', background: 'linear-gradient(135deg,#0A66C2 0%,#1E88D4 100%)', flexShrink: 0, position: 'relative' }}>
+        {/* Avatar */}
+        <div style={{ position: 'absolute', bottom: -16, left: 14, width: 32, height: 32, borderRadius: '50%', background: '#C8DBF0', border: '3px solid #fff', boxShadow: '0 1px 3px rgba(0,0,0,.2)' }} />
       </div>
-      <div style={{ padding: '18px 12px 10px', flex: 1 }}>
-        <div style={{ height: 5, background: '#083d77', borderRadius: 3, width: '52%', marginBottom: 5 }} />
-        <div style={{ height: 3, background: '#555', borderRadius: 2, width: '72%', marginBottom: 10 }} />
-        <div style={{ height: 2, background: '#dde5f0', borderRadius: 1, width: '88%', marginBottom: 3 }} />
-        <div style={{ height: 2, background: '#dde5f0', borderRadius: 1, width: '75%', marginBottom: 3 }} />
-        <div style={{ height: 2, background: '#dde5f0', borderRadius: 1, width: '60%' }} />
+      {/* Body */}
+      <div style={{ padding: '22px 14px 10px', flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <div style={{ height: 6, background: '#083d77', borderRadius: 2, width: '54%' }} />
+        <div style={{ height: 3.5, background: '#444', borderRadius: 2, width: '76%' }} />
+        <div style={{ height: 3, background: '#b0b0b0', borderRadius: 2, width: '44%', marginBottom: 4 }} />
+        {/* Open to work badge */}
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#d4edda', border: '1px solid #28a745', borderRadius: 999, padding: '2px 6px', alignSelf: 'flex-start' }}>
+          <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#28a745' }} />
+          <div style={{ height: 2.5, background: '#28a745', borderRadius: 1, width: 30 }} />
+        </div>
+        <div style={{ marginTop: 4, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+          <div style={{ height: 2, background: '#e0e6f0', borderRadius: 1 }} />
+          <div style={{ height: 2, background: '#e0e6f0', borderRadius: 1, width: '80%' }} />
+          <div style={{ height: 2, background: '#e0e6f0', borderRadius: 1, width: '65%' }} />
+        </div>
       </div>
     </div>
   )
@@ -37,23 +94,39 @@ function LinkedInPreview() {
 
 function WikiPreview() {
   return (
-    <div style={{ background: '#fff', overflow: 'hidden', height: '100%', padding: '8px', display: 'flex', flexDirection: 'column', gap: 5 }}>
-      <div style={{ borderBottom: '1px solid #a2a9b1', paddingBottom: 5 }}>
-        <div style={{ height: 7, background: '#202122', borderRadius: 1, width: '48%' }} />
+    <div style={{ background: '#fff', height: '100%', padding: '8px', display: 'flex', flexDirection: 'column', gap: 4, overflow: 'hidden' }}>
+      {/* Stub banner */}
+      <div style={{ background: '#eaf3fb', border: '1px solid #a2c8e8', padding: '3px 6px', display: 'flex', gap: 4, alignItems: 'center' }}>
+        <div style={{ width: 8, height: 8, borderRadius: 1, background: '#3d77c2', flexShrink: 0 }} />
+        <div style={{ height: 2.5, background: '#3d77c2', borderRadius: 1, flex: 1 }} />
       </div>
+      {/* Title */}
+      <div style={{ height: 7, background: '#202122', borderRadius: 1, width: '60%' }} />
+      {/* Main layout */}
       <div style={{ display: 'flex', gap: 5, flex: 1 }}>
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
+        {/* Text column */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
           <div style={{ height: 2, background: '#e0e0e0', borderRadius: 1 }} />
-          <div style={{ height: 2, background: '#e0e0e0', borderRadius: 1, width: '85%' }} />
-          <div style={{ height: 2, background: '#e0e0e0', borderRadius: 1, width: '92%' }} />
-          <div style={{ height: 2, background: '#e0e0e0', borderRadius: 1, width: '70%' }} />
+          <div style={{ height: 2, background: '#e0e0e0', borderRadius: 1, width: '90%' }} />
+          <div style={{ height: 2, background: '#e0e0e0', borderRadius: 1, width: '82%' }} />
           <div style={{ height: 2, background: '#e0e0e0', borderRadius: 1 }} />
+          <div style={{ height: 2, background: '#e0e0e0', borderRadius: 1, width: '74%' }} />
+          {/* Section heading */}
+          <div style={{ height: 3.5, background: '#083d77', borderRadius: 1, width: '50%', marginTop: 2 }} />
+          <div style={{ height: 2, background: '#e0e0e0', borderRadius: 1 }} />
+          <div style={{ height: 2, background: '#e0e0e0', borderRadius: 1, width: '88%' }} />
         </div>
-        <div style={{ width: '33%', border: '1px solid #a2a9b1', padding: 5, background: '#f8f9fa', display: 'flex', flexDirection: 'column', gap: 2.5, flexShrink: 0 }}>
-          <div style={{ height: 2, background: '#c0c0c0', borderRadius: 1 }} />
-          <div style={{ height: 2, background: '#c0c0c0', borderRadius: 1 }} />
-          <div style={{ height: 2, background: '#c0c0c0', borderRadius: 1 }} />
-          <div style={{ height: 2, background: '#c0c0c0', borderRadius: 1, width: '70%' }} />
+        {/* Infobox */}
+        <div style={{ width: '34%', border: '1px solid #a2a9b1', flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ background: '#eaecf0', borderBottom: '1px solid #a2a9b1', padding: '3px 4px' }}>
+            <div style={{ height: 2.5, background: '#54595d', borderRadius: 1, width: '70%' }} />
+          </div>
+          <div style={{ padding: '4px', display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+            <div style={{ height: 2, background: '#c0c0c0', borderRadius: 1 }} />
+            <div style={{ height: 2, background: '#c0c0c0', borderRadius: 1 }} />
+            <div style={{ height: 2, background: '#c0c0c0', borderRadius: 1, width: '80%' }} />
+            <div style={{ height: 2, background: '#c0c0c0', borderRadius: 1, width: '60%' }} />
+          </div>
         </div>
       </div>
     </div>
@@ -62,27 +135,45 @@ function WikiPreview() {
 
 function PlaquePreview() {
   return (
-    <div style={{ background: '#ebebd3', border: '1px solid rgba(8,61,119,0.25)', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 6, padding: '16px 14px' }}>
-      <div style={{ height: 5, background: '#083d77', borderRadius: 1, width: '52%' }} />
-      <div style={{ height: 3, background: 'rgba(8,61,119,0.42)', borderRadius: 1, width: '30%' }} />
-      <div style={{ width: 22, height: 1, background: 'rgba(8,61,119,0.2)', marginTop: 3 }} />
-      <div style={{ height: 2, background: 'rgba(8,61,119,0.2)', borderRadius: 1, width: '82%' }} />
-      <div style={{ height: 2, background: 'rgba(8,61,119,0.2)', borderRadius: 1, width: '70%' }} />
-      <div style={{ height: 2, background: 'rgba(8,61,119,0.2)', borderRadius: 1, width: '55%' }} />
+    <div style={{ background: '#ebebd3', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+      {/* Inner inset border */}
+      <div style={{ border: '1px solid rgba(8,61,119,0.25)', margin: '10px', flex: 1, height: 'calc(100% - 20px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '12px 16px' }}>
+        <div style={{ height: 5, background: '#083d77', borderRadius: 1, width: '55%' }} />
+        <div style={{ height: 3, background: 'rgba(8,61,119,0.45)', borderRadius: 1, width: '28%' }} />
+        {/* Gold rule */}
+        <div style={{ width: 28, height: 1.5, background: '#f4d35e', margin: '1px 0' }} />
+        <div style={{ height: 2, background: 'rgba(8,61,119,0.22)', borderRadius: 1, width: '85%' }} />
+        <div style={{ height: 2, background: 'rgba(8,61,119,0.22)', borderRadius: 1, width: '75%' }} />
+        <div style={{ height: 2, background: 'rgba(8,61,119,0.22)', borderRadius: 1, width: '65%' }} />
+        <div style={{ height: 2, background: 'rgba(8,61,119,0.22)', borderRadius: 1, width: '52%' }} />
+      </div>
     </div>
   )
 }
 
 function TarotPreview() {
   return (
-    <div style={{ background: '#083d77', border: '1px solid #f4d35e', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', padding: '10px 8px' }}>
-      <div style={{ height: 3, background: '#f4d35e', borderRadius: 1, width: '20%', opacity: 0.9 }} />
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
-        <div style={{ width: 30, height: 30, border: '1.5px solid #f4d35e', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ width: 13, height: 13, background: '#f4d35e', transform: 'rotate(45deg)', opacity: 0.9 }} />
+    <div style={{ background: '#083d77', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', padding: '8px', overflow: 'hidden', border: '1px solid rgba(244,211,94,0.25)' }}>
+      {/* Roman numeral */}
+      <div style={{ height: 3, background: '#f4d35e', borderRadius: 1, width: '18%', opacity: 0.9 }} />
+      {/* Central symbol — circle + star */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+        <div style={{ width: 34, height: 34, borderRadius: '50%', border: '1.5px solid #f4d35e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {/* Star shape via rotated squares */}
+          <div style={{ position: 'relative', width: 16, height: 16 }}>
+            <div style={{ position: 'absolute', inset: 0, background: '#f4d35e', transform: 'rotate(0deg)', opacity: 0.9 }} />
+            <div style={{ position: 'absolute', inset: 0, background: '#f4d35e', transform: 'rotate(45deg)', opacity: 0.9 }} />
+          </div>
+        </div>
+        {/* Suit dots */}
+        <div style={{ display: 'flex', gap: 3 }}>
+          {[0,1,2].map(i => (
+            <div key={i} style={{ width: 4, height: 4, borderRadius: '50%', background: '#f4d35e', opacity: 0.6 }} />
+          ))}
         </div>
       </div>
-      <div style={{ height: 3, background: '#ebebd3', borderRadius: 1, width: '58%', opacity: 0.65 }} />
+      {/* Card title */}
+      <div style={{ height: 3, background: '#ebebd3', borderRadius: 1, width: '62%', opacity: 0.65 }} />
     </div>
   )
 }
@@ -94,17 +185,7 @@ const PREVIEWS: Record<TemplateId, React.ComponentType> = {
   'tarot-card':     TarotPreview,
 }
 
-const TAGLINES: Record<TemplateId, string> = {
-  'linkedin-ghost': 'uncanny-valley profile',
-  'wiki-stub':      'wikipedia article',
-  'museum-plaque':  'gallery wall card',
-  'tarot-card':     'fortune foretold',
-}
-
-/* Asymmetric grid spans (12-col grid, md+ only) — diagonal rhythm.
-   Tile 0 large L,  Tile 1 small R
-   Tile 2 small L,  Tile 3 large R   */
-const SPANS: string[] = ['md:col-span-7', 'md:col-span-5', 'md:col-span-5', 'md:col-span-7']
+/* ── Page ───────────────────────────────────────────────────────────────── */
 
 export default function TemplatesPage() {
   const router = useRouter()
@@ -160,58 +241,91 @@ export default function TemplatesPage() {
         <div className="mt-3 h-px bg-ink/8" />
       </header>
 
-      {/* Page header lockup */}
-      <div className="shrink-0 px-6 md:px-14 pt-5 pb-2">
+      {/* Page header */}
+      <div className="shrink-0 px-6 md:px-14 pt-4 pb-2">
         <Lockup
           variant="page"
           eyebrow={<><span className="text-coral/70">( 03 )</span>&nbsp;&nbsp;Format</>}
           display={<>pick a <span className="font-extralight italic">format</span></>}
-          caption={branch ? `fork at ${branch.year} — ${branch.summary.slice(0, 60)}${branch.summary.length > 60 ? '…' : ''}` : ''}
+          caption={branch ? `fork at ${branch.year} — ${branch.summary.slice(0, 55)}${branch.summary.length > 55 ? '…' : ''}` : ''}
         />
       </div>
 
-      {/* Asymmetric template grid */}
-      <div className="flex-1 min-h-0 overflow-y-auto px-6 md:px-14 py-4">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4 pb-4">
-          {TEMPLATE_IDS.map((id, i) => {
-            const meta = TEMPLATE_META[id]
-            const Preview = PREVIEWS[id]
-            const isSelected = selected === id
-            return (
-              <button
-                key={id}
-                onClick={() => setSelected(id)}
-                className={[
-                  'template-card w-full text-left',
-                  SPANS[i],
-                  isSelected ? 'template-card--selected' : '',
-                ].join(' ')}
+      {/* 2 × 2 card grid — always fills the remaining height */}
+      <div className="flex-1 min-h-0 grid grid-cols-2 grid-rows-2 gap-3 px-4 md:px-14 py-3 pb-4">
+        {TEMPLATE_IDS.map((id) => {
+          const cfg = CARD_CONFIG[id]
+          const meta = TEMPLATE_META[id]
+          const Preview = PREVIEWS[id]
+          const isSelected = selected === id
+
+          return (
+            <button
+              key={id}
+              onClick={() => setSelected(id)}
+              className="group text-left flex flex-col overflow-hidden h-full"
+              style={{
+                background: cfg.bodyBg,
+                border: `2px solid #083d77`,
+                boxShadow: isSelected
+                  ? `1px 1px 0 ${cfg.shadowCol}`
+                  : `5px 5px 0 ${cfg.shadowCol}`,
+                transform: isSelected ? 'translate(4px, 4px)' : 'translate(0, 0)',
+                transition: 'box-shadow 0.12s ease, transform 0.12s ease',
+                outline: isSelected ? `2px solid ${cfg.headerBg}` : 'none',
+                outlineOffset: '-4px',
+              }}
+            >
+              {/* Coloured header strip */}
+              <div
+                className="shrink-0 flex items-center justify-between px-3 py-2"
+                style={{ background: cfg.headerBg }}
               >
-                <div className="relative overflow-hidden" style={{ aspectRatio: '4/3' }}>
-                  <div className="absolute inset-0">
-                    <Preview />
-                  </div>
+                <span
+                  className="font-mono text-[8px] uppercase tracking-widest"
+                  style={{ color: cfg.headerText, opacity: 0.85 }}
+                >
+                  _{cfg.tag}
+                </span>
+                {isSelected && (
+                  <span
+                    className="font-mono text-[9px] font-bold"
+                    style={{ color: cfg.headerText }}
+                  >
+                    ✓
+                  </span>
+                )}
+              </div>
+
+              {/* Preview — fills remaining card height */}
+              <div className="flex-1 min-h-0 relative">
+                <div className="absolute inset-0">
+                  <Preview />
                 </div>
-                {/* Three-line lockup label */}
-                <div className="px-3 py-3 border-t border-ink/8">
-                  <div className="font-tax text-tax text-ink/40 mb-1.5">
-                    <span className="text-ink/25">_</span>{id}
-                  </div>
-                  <p className="font-display text-[15px] font-light text-ink leading-tight">
-                    {meta.label}
-                  </p>
-                  <p className="font-inter text-caption italic text-ink/40 mt-0.5">
-                    {TAGLINES[id]}
-                  </p>
-                </div>
-              </button>
-            )
-          })}
-        </div>
+              </div>
+
+              {/* Label footer */}
+              <div
+                className="shrink-0 px-3 py-2"
+                style={{ borderTop: '1px solid rgba(8,61,119,0.12)', background: cfg.bodyBg }}
+              >
+                <p
+                  className="font-display font-light text-ink leading-none"
+                  style={{ fontSize: 'clamp(11px, 1.5vw, 14px)' }}
+                >
+                  {meta.label}
+                </p>
+                <p className="font-mono text-[8px] uppercase tracking-widest mt-1" style={{ color: 'rgba(8,61,119,0.4)' }}>
+                  {cfg.tagline}
+                </p>
+              </div>
+            </button>
+          )
+        })}
       </div>
 
       {/* Sticky CTA */}
-      <div className="shrink-0 px-6 md:px-14 pt-3 pb-6 md:pb-8 border-t border-ink/8 bg-cream">
+      <div className="shrink-0 px-6 md:px-14 pt-3 pb-5 md:pb-8 border-t border-ink/8 bg-cream">
         <button
           onClick={handleGenerate}
           disabled={!selected}
@@ -222,13 +336,7 @@ export default function TemplatesPage() {
               : 'bg-ink/8 text-ink/22 cursor-not-allowed',
           ].join(' ')}
         >
-          {selected ? 'generate this life →' : 'pick a format first'}
-        </button>
-        <button
-          onClick={() => router.back()}
-          className="w-full text-center mt-3 font-eyebrow text-eyebrow text-ink/35 hover:text-ink transition-colors"
-        >
-          ← back
+          {selected ? `generate this life →` : 'pick a format first'}
         </button>
       </div>
 
